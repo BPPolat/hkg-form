@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Mobilfunk & Festnetz & Lizenz Anfrage Formular</title>
+    <title>Mobilfunk & Festnetz & Lizenz Anfrage Formular</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -108,8 +108,8 @@
 </head>
 <body>
     <div class="form-container">
-        <h1>📋 Telekom & Lizenz Anfrage Formular</h1>
-        <p class="form-description">Je mehr Informationen, desto besser können wir Ihnen helfen!</p>
+        <h1>📋 Mobilfunk & Festnetz & Lizenz Anfrage</h1>
+        <p class="form-description">Anfrage wird automatisch an den zuständigen Bearbeiter gesendet!</p>
         
         <form id="telekomForm" enctype="multipart/form-data">
             <div class="form-group">
@@ -149,12 +149,12 @@
                 <label for="bearbeiter">Bearbeiter <span class="required">*</span></label>
                 <select id="bearbeiter" name="bearbeiter" required>
                     <option value="">Bearbeiter auswählen...</option>
-                    <option value="bp">b.polat@haeusler-itk.de</option>
-                    <option value="bp">a.stoelzel@haeusler-itk.de</option>
-                    <option value="ads">a.desilva@haeusler-itk.de</option>
-                    <option value="st">s.theil@haeusler-itk.de</option>
-                    <option value="j.gosewisch@haeusler-itk.de">JG</option>
-                    <option value="s.guschmann@haeusler-itk.de">SG</option>
+                    <option value="b.polat@haeusler-itk.de">BP (b.polat@haeusler-itk.de)</option>
+                    <option value="a.stoelzel@haeusler-itk.de">AS (a.stoelzel@haeusler-itk.de)</option>
+                    <option value="a.desilva@haeusler-itk.de">ADS (a.desilva@haeusler-itk.de)</option>
+                    <option value="s.theil@haeusler-itk.de">ST (s.theil@haeusler-itk.de)</option>
+                    <option value="j.gosewisch@haeusler-itk.de">JG (j.gosewisch@haeusler-itk.de)</option>
+                    <option value="s.guschmann@haeusler-itk.de">SG (s.guschmann@haeusler-itk.de)</option>
                 </select>
             </div>
 
@@ -179,7 +179,7 @@
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">
-                📤 Anfrage senden
+                📧 Anfrage an Bearbeiter senden
             </button>
         </form>
 
@@ -201,10 +201,12 @@
             
             const submitBtn = document.getElementById('submitBtn');
             const result = document.getElementById('result');
+            const bearbeiterEmail = document.getElementById('bearbeiter').value;
+            const firmaName = document.getElementById('firma_name').value;
             
             // Loading state
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '⏳ Wird gesendet...';
+            submitBtn.innerHTML = '📧 Wird an ' + bearbeiterEmail.split('@')[0] + ' gesendet...';
             result.style.display = 'none';
             
             try {
@@ -217,7 +219,6 @@
                 
                 console.log('Sending to webhook...');
                 
-                // CORRECTED WEBHOOK URL
                 const response = await fetch('https://bppolat.app.n8n.cloud/webhook-test/HKG KI-Mitarbeiter', {
                     method: 'POST',
                     body: formData,
@@ -232,29 +233,28 @@
                     
                     result.innerHTML = `
                         <div class="success">
-                            <h3>✅ Anfrage erfolgreich gesendet!</h3>
+                            <h3>📧 Email erfolgreich gesendet!</h3>
+                            <p><strong>Empfänger:</strong> ${bearbeiterEmail}</p>
+                            <p><strong>Betreff:</strong> Kundenanfrage - ${firmaName}</p>
                             <p><strong>Anfrage-ID:</strong> ${requestId}</p>
                             <p><strong>Zeitpunkt:</strong> ${new Date().toLocaleString('de-DE')}</p>
-                            <p><strong>Status:</strong> Wird bearbeitet</p>
                             <br>
-                            <h4>📋 Ihre Eingaben:</h4>
+                            <h4>📋 Gesendete Informationen:</h4>
                             <ul>
-                                <li><strong>MS Lizenz:</strong> ${formData.get('ms_lizenz') || 'Suche MS Lizenz Lösung'}</li>
-                                <li><strong>Mobilfunk:</strong> ${formData.get('mobilfunk') || 'Suche Mobilfunk Lösung'}</li>
-                                <li><strong>Festnetz:</strong> ${formData.get('festnetz') || 'Suche Festnetz Lösung'}</li>
                                 <li><strong>Firma:</strong> ${formData.get('firma_name')}</li>
-                                <li><strong>Bearbeiter:</strong> ${formData.get('bearbeiter').toUpperCase()}</li>
+                                <li><strong>MS Lizenz:</strong> ${formData.get('ms_lizenz') || 'Keine Auswahl'}</li>
+                                <li><strong>Mobilfunk:</strong> ${formData.get('mobilfunk') || 'Keine Auswahl'}</li>
+                                <li><strong>Festnetz:</strong> ${formData.get('festnetz') || 'Keine Auswahl'}</li>
                                 <li><strong>Datei:</strong> ${uploadedFile ? uploadedFile.name : 'Keine Datei'}</li>
-                                <li><strong>Weitere Info:</strong> ${formData.get('weitere_info') || 'Keine zusätzlichen Infos'}</li>
+                                <li><strong>Bearbeiter:</strong> ${bearbeiterEmail}</li>
                             </ul>
                             <br>
-                            ${responseData.analysis ? `<h4>🤖 AI Analyse:</h4><p>${responseData.analysis}</p><br>` : ''}
-                            <h4>📋 Nächste Schritte:</h4>
+                            <h4>✅ Nächste Schritte:</h4>
                             <ol>
-                                <li>Anfrage wird analysiert 🔍</li>
-                                <li>Beste Lösung wird gesucht 📊</li>
-                                <li>Angebot wird erstellt 💰</li>
-                                <li>Rückmeldung in 24h ⏰</li>
+                                <li>Email mit AI-Analyse wird an ${bearbeiterEmail} gesendet 📧</li>
+                                <li>Bearbeiter erstellt individuelles Angebot 📊</li>
+                                <li>Rückmeldung erfolgt direkt an den Kunden 📞</li>
+                                <li>Erwartete Bearbeitungszeit: 24h ⏰</li>
                             </ol>
                         </div>
                     `;
@@ -272,22 +272,16 @@
                 result.innerHTML = `
                     <div class="error">
                         <h3>❌ Fehler beim Senden</h3>
-                        <p>Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.</p>
+                        <p>Die Email konnte nicht gesendet werden. Bitte versuchen Sie es erneut.</p>
+                        <p><strong>Empfänger:</strong> ${bearbeiterEmail}</p>
                         <p><strong>Fehler:</strong> ${error.message}</p>
-                        <br>
-                        <p><strong>Debugging Info:</strong></p>
-                        <ul>
-                            <li>URL: https://bppolat.app.n8n.cloud/webhook-test/HKG KI-Mitarbeiter</li>
-                            <li>Browser: ${navigator.userAgent}</li>
-                            <li>Zeit: ${new Date().toISOString()}</li>
-                        </ul>
                         <br>
                         <p><strong>Mögliche Lösungen:</strong></p>
                         <ul>
                             <li>Internetverbindung prüfen</li>
+                            <li>Anderen Bearbeiter auswählen</li>
                             <li>Browser neu laden (F5)</li>
                             <li>Später erneut versuchen</li>
-                            <li>Andere Browser verwenden</li>
                         </ul>
                     </div>
                 `;
@@ -296,7 +290,7 @@
             
             // Reset button
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '📤 Anfrage senden';
+            submitBtn.innerHTML = '📧 Anfrage an Bearbeiter senden';
         });
         
         // File validation
