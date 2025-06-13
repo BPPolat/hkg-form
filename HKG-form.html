@@ -281,15 +281,12 @@
 
                     <div class="form-group">
                         <label for="uploaded_file">Dokument hochladen (optional)</label>
-                        <div class="file-upload" style="display: none;">
-                            <input type="file" id="uploaded_file" name="uploaded_file" accept=".pdf,.doc,.docx,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp" disabled>
+                        <div class="file-upload">
+                            <input type="file" id="uploaded_file" name="uploaded_file" accept=".pdf,.doc,.docx,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp">
                             <label for="uploaded_file" class="file-upload-label">
                                 📄 Klicken Sie hier, um eine Datei auszuwählen<br>
                                 <small>Unterstützte Formate: PDF, DOC, DOCX, XLSX, TXT, JPG, PNG, GIF, BMP, WEBP</small>
                             </label>
-                        </div>
-                        <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 8px; color: #856404;">
-                            📎 <strong>Hinweis:</strong> Dosya yükleme özelliği şu anda JSON test modu için devre dışı bırakıldı.
                         </div>
                     </div>
                 </div>
@@ -339,40 +336,68 @@
             const formData = new FormData(this);
             const submitBtn = document.querySelector('.submit-btn');
             const bearbeiterSelect = document.getElementById('bearbeiter');
-            
-            // Form verilerini JSON'a çevir
-            const jsonData = {};
-            for (let [key, value] of formData.entries()) {
-                if (key !== 'uploaded_file') { // Dosyayı şimdilik hariç tutalım
-                    jsonData[key] = value;
-                }
-            }
+            const fileInput = document.getElementById('uploaded_file');
             
             console.log('Bearbeiter selected:', bearbeiterSelect.value);
-            console.log('JSON Data:', jsonData);
             
             submitBtn.innerHTML = '⏳ Anfrage wird verarbeitet...';
             submitBtn.disabled = true;
             
-            // JSON olarak gönder
-            fetch(this.action, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(jsonData)
-            })
-            .then(response => response.text())
-            .then(data => {
-                console.log('Response:', data);
-                submitBtn.innerHTML = '✅ Anfrage erfolgreich gesendet!';
-                submitBtn.style.background = '#28a745';
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                submitBtn.innerHTML = '❌ Fehler beim Senden';
-                submitBtn.style.background = '#dc3545';
-            });
+            // Dosya varsa multipart olarak gönder, yoksa JSON olarak gönder
+            if (fileInput.files.length > 0) {
+                console.log('File detected, sending as multipart/form-data');
+                console.log('File:', fileInput.files[0].name);
+                
+                // FormData ile multipart gönder (dosya + form verileri)
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData // Content-Type otomatik multipart/form-data olur
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log('Multipart Response:', data);
+                    submitBtn.innerHTML = '✅ Anfrage mit Datei erfolgreich gesendet!';
+                    submitBtn.style.background = '#28a745';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    submitBtn.innerHTML = '❌ Fehler beim Senden';
+                    submitBtn.style.background = '#dc3545';
+                });
+                
+            } else {
+                console.log('No file, sending as JSON');
+                
+                // Form verilerini JSON'a çevir (dosya olmadan)
+                const jsonData = {};
+                for (let [key, value] of formData.entries()) {
+                    if (key !== 'uploaded_file') {
+                        jsonData[key] = value;
+                    }
+                }
+                
+                console.log('JSON Data:', jsonData);
+                
+                // JSON olarak gönder
+                fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData)
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log('JSON Response:', data);
+                    submitBtn.innerHTML = '✅ Anfrage erfolgreich gesendet!';
+                    submitBtn.style.background = '#28a745';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    submitBtn.innerHTML = '❌ Fehler beim Senden';
+                    submitBtn.style.background = '#dc3545';
+                });
+            }
         });
     </script>
 </body>
