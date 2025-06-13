@@ -212,7 +212,7 @@
                 formData.append('timestamp', new Date().toISOString());
                 formData.append('request_id', requestId);
                 
-                console.log('Sending request to webhook...');
+                console.log('Sending to webhook...');
                 
                 const response = await fetch('https://bppolat.app.n8n.cloud/webhook-test/HKG KI-Mitarbeiter', {
                     method: 'POST',
@@ -224,7 +224,7 @@
                 
                 if (response.ok) {
                     const responseData = await response.text();
-                    console.log('Response data:', responseData);
+                    console.log('Response:', responseData);
                     
                     result.innerHTML = `
                         <div class="success">
