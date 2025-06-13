@@ -331,18 +331,45 @@
 
         // Form submission feedback
         document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault(); // Form'un normal gönderimini durdur
+            
+            const formData = new FormData(this);
             const submitBtn = document.querySelector('.submit-btn');
             const bearbeiterSelect = document.getElementById('bearbeiter');
-            const debugField = document.getElementById('debug_bearbeiter');
             
-            // Debug: Copy bearbeiter value to debug field
-            debugField.value = bearbeiterSelect.value;
+            // Form verilerini JSON'a çevir
+            const jsonData = {};
+            for (let [key, value] of formData.entries()) {
+                if (key !== 'uploaded_file') { // Dosyayı şimdilik hariç tutalım
+                    jsonData[key] = value;
+                }
+            }
             
             console.log('Bearbeiter selected:', bearbeiterSelect.value);
-            console.log('Form data:', new FormData(this));
+            console.log('JSON Data:', jsonData);
             
             submitBtn.innerHTML = '⏳ Anfrage wird verarbeitet...';
             submitBtn.disabled = true;
+            
+            // JSON olarak gönder
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(jsonData)
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Response:', data);
+                submitBtn.innerHTML = '✅ Anfrage erfolgreich gesendet!';
+                submitBtn.style.background = '#28a745';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                submitBtn.innerHTML = '❌ Fehler beim Senden';
+                submitBtn.style.background = '#dc3545';
+            });
         });
     </script>
 </body>
