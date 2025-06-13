@@ -331,7 +331,7 @@
 
         // Form submission feedback
         document.querySelector('form').addEventListener('submit', function(e) {
-            e.preventDefault(); // Form'un normal gönderimini durdur
+            e.preventDefault();
             
             const formData = new FormData(this);
             const submitBtn = document.querySelector('.submit-btn');
@@ -343,61 +343,74 @@
             submitBtn.innerHTML = '⏳ Anfrage wird verarbeitet...';
             submitBtn.disabled = true;
             
-            // Dosya varsa multipart olarak gönder, yoksa JSON olarak gönder
+            // Her zaman form verilerini JSON olarak gönder
+            const jsonData = {};
+            for (let [key, value] of formData.entries()) {
+                if (key !== 'uploaded_file') {
+                    jsonData[key] = value;
+                }
+            }
+            
+            // Dosya varsa dosya bilgisini de ekle
             if (fileInput.files.length > 0) {
-                console.log('File detected, sending as multipart/form-data');
-                console.log('File:', fileInput.files[0].name);
-                
-                // FormData ile multipart gönder (dosya + form verileri)
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData // Content-Type otomatik multipart/form-data olur
-                })
-                .then(response => response.text())
-                .then(data => {
-                    console.log('Multipart Response:', data);
-                    submitBtn.innerHTML = '✅ Anfrage mit Datei erfolgreich gesendet!';
-                    submitBtn.style.background = '#28a745';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    submitBtn.innerHTML = '❌ Fehler beim Senden';
-                    submitBtn.style.background = '#dc3545';
-                });
-                
+                jsonData.has_file = true;
+                jsonData.file_name = fileInput.files[0].name;
+                jsonData.file_size = fileInput.files[0].size;
+                jsonData.file_type = fileInput.files[0].type;
             } else {
-                console.log('No file, sending as JSON');
+                jsonData.has_file = false;
+            }
+            
+            console.log('Sending JSON Data:', jsonData);
+            
+            // 1. Önce form verilerini JSON olarak gönder
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(jsonData)
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('JSON Response:', data);
                 
-                // Form verilerini JSON'a çevir (dosya olmadan)
-                const jsonData = {};
-                for (let [key, value] of formData.entries()) {
-                    if (key !== 'uploaded_file') {
-                        jsonData[key] = value;
-                    }
+                // 2. Dosya varsa ayrı olarak gönder
+                if (fileInput.files.length > 0) {
+                    console.log('Uploading file separately...');
+                    
+                    const fileFormData = new FormData();
+                    fileFormData.append('uploaded_file', fileInput.files[0]);
+                    fileFormData.append('request_id', jsonData.request_id); // Bağlantı için
+                    fileFormData.append('firma_name', jsonData.firma_name); // Bağlantı için
+                    
+                    // Dosya için ayrı endpoint (şimdilik aynı URL ama farklı parametre)
+                    const fileUploadUrl = this.action + '?type=file';
+                    
+                    return fetch(fileUploadUrl, {
+                        method: 'POST',
+                        body: fileFormData
+                    });
+                } else {
+                    return Promise.resolve({ text: () => 'No file to upload' });
+                }
+            })
+            .then(response => response.text ? response.text() : response)
+            .then(fileData => {
+                if (fileData !== 'No file to upload') {
+                    console.log('File Upload Response:', fileData);
                 }
                 
-                console.log('JSON Data:', jsonData);
-                
-                // JSON olarak gönder
-                fetch(this.action, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(jsonData)
-                })
-                .then(response => response.text())
-                .then(data => {
-                    console.log('JSON Response:', data);
-                    submitBtn.innerHTML = '✅ Anfrage erfolgreich gesendet!';
-                    submitBtn.style.background = '#28a745';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    submitBtn.innerHTML = '❌ Fehler beim Senden';
-                    submitBtn.style.background = '#dc3545';
-                });
-            }
+                submitBtn.innerHTML = jsonData.has_file ? 
+                    '✅ Anfrage mit Datei erfolgreich gesendet!' : 
+                    '✅ Anfrage erfolgreich gesendet!';
+                submitBtn.style.background = '#28a745';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                submitBtn.innerHTML = '❌ Fehler beim Senden';
+                submitBtn.style.background = '#dc3545';
+            });
         });
     </script>
 </body>
