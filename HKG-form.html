@@ -229,6 +229,9 @@
                             <option value="s.guschmann@haeusler-itk.de">SG (s.guschmann@haeusler-itk.de)</option>
                         </select>
                     </div>
+
+                    <!-- Debug: Hidden field to test -->
+                    <input type="hidden" name="debug_bearbeiter" id="debug_bearbeiter">
                 </div>
 
                 <!-- Gewünschte Services -->
@@ -329,6 +332,15 @@
         // Form submission feedback
         document.querySelector('form').addEventListener('submit', function(e) {
             const submitBtn = document.querySelector('.submit-btn');
+            const bearbeiterSelect = document.getElementById('bearbeiter');
+            const debugField = document.getElementById('debug_bearbeiter');
+            
+            // Debug: Copy bearbeiter value to debug field
+            debugField.value = bearbeiterSelect.value;
+            
+            console.log('Bearbeiter selected:', bearbeiterSelect.value);
+            console.log('Form data:', new FormData(this));
+            
             submitBtn.innerHTML = '⏳ Anfrage wird verarbeitet...';
             submitBtn.disabled = true;
         });
