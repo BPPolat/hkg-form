@@ -112,8 +112,16 @@
         <form id="telekomForm" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="ms_lizenz">MS Lizenz</label>
-                <input type="text" id="ms_lizenz" name="ms_lizenz" value="MS 365 Lizenz" readonly
-                       style="background-color: #f8f9fa; color: #6c757d;">
+                <select id="ms_lizenz" name="ms_lizenz">
+                    <option value="">Suche MS Lizenz Lösung</option>
+                    <option value="Office 365 Business Basic">Office 365 Business Basic</option>
+                    <option value="Office 365 Business Standard">Office 365 Business Standard</option>
+                    <option value="Office 365 Business Premium">Office 365 Business Premium</option>
+                    <option value="Microsoft 365 E3">Microsoft 365 E3</option>
+                    <option value="Microsoft 365 E5">Microsoft 365 E5</option>
+                    <option value="Office 365 E1">Office 365 E1</option>
+                    <option value="Microsoft 365 F3">Microsoft 365 F3</option>
+                </select>
             </div>
 
             <div class="form-group">
@@ -246,9 +254,8 @@
                     `;
                     result.style.display = 'block';
                     
-                    // Reset form but keep MS Lizenz
+                    // Reset form but don't keep MS Lizenz
                     this.reset();
-                    document.getElementById('ms_lizenz').value = 'MS 365 Lizenz';
                     
                 } else {
                     throw new Error('Server error');
