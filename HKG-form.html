@@ -206,7 +206,7 @@
                 <strong>ℹ️ Hinweis:</strong> Füllen Sie alle Pflichtfelder (*) aus. Unser KI-System analysiert Ihre Anfrage automatisch und erstellt eine passende Empfehlung.
             </div>
 
-            <form action="https://bppolat.app.n8n.cloud/webhook-test/HKG-KI-Mitarbeiter" method="POST" target="_blank">
+            <form action="https://bppolat.app.n8n.cloud/webhook-test/HKG-KI-Mitarbeiter" method="POST" enctype="multipart/form-data">
                 
                 <!-- Kundeninformationen -->
                 <div class="form-section">
@@ -329,7 +329,7 @@
             }
         });
 
-        // Simple form validation
+        // Basit form - normal submit
         document.querySelector('form').addEventListener('submit', function(e) {
             const bearbeiter = document.getElementById('bearbeiter').value;
             const firma = document.getElementById('firma_name').value;
@@ -340,8 +340,8 @@
                 return false;
             }
             
-            // Form wird normal submitted (kein CORS)
-            console.log('Form wird gesendet...');
+            // Normal form submit - basit ve işlevsel
+            document.querySelector('.submit-btn').innerHTML = '⏳ Anfrage wird verarbeitet...';
         });
     </script>
 </body>
