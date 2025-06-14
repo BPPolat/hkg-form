@@ -206,7 +206,7 @@
                 <strong>ℹ️ Hinweis:</strong> Füllen Sie alle Pflichtfelder (*) aus. Unser KI-System analysiert Ihre Anfrage automatisch und erstellt eine passende Empfehlung.
             </div>
 
-            <form action="https://bppolat.app.n8n.cloud/webhook-test/HKG-KI-Mitarbeiter" method="POST" enctype="multipart/form-data">
+            <form id="hkg-form" method="POST" enctype="multipart/form-data">
                 
                 <!-- Kundeninformationen -->
                 <div class="form-section">
@@ -335,83 +335,50 @@
             
             const formData = new FormData(this);
             const submitBtn = document.querySelector('.submit-btn');
-            const bearbeiterSelect = document.getElementById('bearbeiter');
             const fileInput = document.getElementById('uploaded_file');
-            
-            console.log('Bearbeiter selected:', bearbeiterSelect.value);
             
             submitBtn.innerHTML = '⏳ Anfrage wird verarbeitet...';
             submitBtn.disabled = true;
             
-            // Form verilerini JSON olarak hazırla
-            const jsonData = {};
-            for (let [key, value] of formData.entries()) {
-                if (key !== 'uploaded_file') {
-                    jsonData[key] = value;
-                }
-            }
-            
-            // Dosya varsa dosya bilgisini ekle
+            // Normal form submission (bypass CORS with form method)
             if (fileInput.files.length > 0) {
-                jsonData.has_file = true;
-                jsonData.file_name = fileInput.files[0].name;
-                jsonData.file_size = fileInput.files[0].size;
-                jsonData.file_type = fileInput.files[0].type;
+                // Dosya varsa normal form submit
+                console.log('File detected, using form submission');
+                this.action = 'https://bppolat.app.n8n.cloud/webhook-test/HKG-KI-Mitarbeiter';
+                this.submit();
             } else {
+                // Dosya yoksa JSON
+                console.log('No file, sending JSON');
+                
+                const jsonData = {};
+                for (let [key, value] of formData.entries()) {
+                    if (key !== 'uploaded_file') {
+                        jsonData[key] = value;
+                    }
+                }
                 jsonData.has_file = false;
+                
+                console.log('JSON Data:', jsonData);
+                
+                fetch('https://bppolat.app.n8n.cloud/webhook-test/HKG-KI-Mitarbeiter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData)
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log('Response:', data);
+                    submitBtn.innerHTML = '✅ Anfrage erfolgreich gesendet!';
+                    submitBtn.style.background = '#28a745';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    submitBtn.innerHTML = '❌ Fehler beim Senden';
+                    submitBtn.style.background = '#dc3545';
+                });
             }
-            
-            console.log('Sending JSON Data:', jsonData);
-            
-            // 1. Ana form verilerini gönder
-            fetch(this.action, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(jsonData)
-            })
-            .then(response => response.text())
-            .then(data => {
-                console.log('Form Response:', data);
-                
-                // 2. Dosya varsa ayrı endpoint'e gönder
-                if (fileInput.files.length > 0) {
-                    console.log('Uploading file to separate endpoint...');
-                    
-                    const fileFormData = new FormData();
-                    fileFormData.append('uploaded_file', fileInput.files[0]);
-                    fileFormData.append('request_id', jsonData.request_id);
-                    fileFormData.append('firma_name', jsonData.firma_name);
-                    fileFormData.append('bearbeiter', jsonData.bearbeiter);
-                    
-                    // Ayrı dosya endpoint'i
-                    const fileUploadUrl = 'https://bppolat.app.n8n.cloud/webhook-test/HKG-KI-Mitarbeiter-File';
-                    
-                    return fetch(fileUploadUrl, {
-                        method: 'POST',
-                        body: fileFormData
-                    });
-                } else {
-                    return Promise.resolve({ text: () => 'No file to upload' });
-                }
-            })
-            .then(response => response.text ? response.text() : response)
-            .then(fileData => {
-                if (fileData !== 'No file to upload') {
-                    console.log('File Upload Response:', fileData);
-                }
-                
-                submitBtn.innerHTML = jsonData.has_file ? 
-                    '✅ Anfrage mit Datei erfolgreich gesendet!' : 
-                    '✅ Anfrage erfolgreich gesendet!';
-                submitBtn.style.background = '#28a745';
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                submitBtn.innerHTML = '❌ Fehler beim Senden';
-                submitBtn.style.background = '#dc3545';
-            });
         });
     </script>
 </body>
