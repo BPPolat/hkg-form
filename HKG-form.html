@@ -206,7 +206,7 @@
                 <strong>ℹ️ Hinweis:</strong> Füllen Sie alle Pflichtfelder (*) aus. Unser KI-System analysiert Ihre Anfrage automatisch und erstellt eine passende Empfehlung.
             </div>
 
-            <form id="hkg-form" method="POST" enctype="multipart/form-data">
+            <form action="https://bppolat.app.n8n.cloud/webhook-test/HKG-KI-Mitarbeiter" method="POST" target="_blank">
                 
                 <!-- Kundeninformationen -->
                 <div class="form-section">
@@ -329,56 +329,19 @@
             }
         });
 
-        // Form submission feedback
+        // Simple form validation
         document.querySelector('form').addEventListener('submit', function(e) {
-            e.preventDefault();
+            const bearbeiter = document.getElementById('bearbeiter').value;
+            const firma = document.getElementById('firma_name').value;
             
-            const formData = new FormData(this);
-            const submitBtn = document.querySelector('.submit-btn');
-            const fileInput = document.getElementById('uploaded_file');
-            
-            submitBtn.innerHTML = '⏳ Anfrage wird verarbeitet...';
-            submitBtn.disabled = true;
-            
-            // Normal form submission (bypass CORS with form method)
-            if (fileInput.files.length > 0) {
-                // Dosya varsa normal form submit
-                console.log('File detected, using form submission');
-                this.action = 'https://bppolat.app.n8n.cloud/webhook-test/HKG-KI-Mitarbeiter';
-                this.submit();
-            } else {
-                // Dosya yoksa JSON
-                console.log('No file, sending JSON');
-                
-                const jsonData = {};
-                for (let [key, value] of formData.entries()) {
-                    if (key !== 'uploaded_file') {
-                        jsonData[key] = value;
-                    }
-                }
-                jsonData.has_file = false;
-                
-                console.log('JSON Data:', jsonData);
-                
-                fetch('https://bppolat.app.n8n.cloud/webhook-test/HKG-KI-Mitarbeiter', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(jsonData)
-                })
-                .then(response => response.text())
-                .then(data => {
-                    console.log('Response:', data);
-                    submitBtn.innerHTML = '✅ Anfrage erfolgreich gesendet!';
-                    submitBtn.style.background = '#28a745';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    submitBtn.innerHTML = '❌ Fehler beim Senden';
-                    submitBtn.style.background = '#dc3545';
-                });
+            if (!bearbeiter || !firma) {
+                e.preventDefault();
+                alert('Bitte füllen Sie alle Pflichtfelder aus!');
+                return false;
             }
+            
+            // Form wird normal submitted (kein CORS)
+            console.log('Form wird gesendet...');
         });
     </script>
 </body>
